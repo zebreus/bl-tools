@@ -95,13 +95,60 @@
               destination = "/bin/devcube";
               text = ''
                 #!${stdenv.shell}
-      
+
                 ${xorg.xhost}/bin/xhost +local:root
-              
+
                 ${podman}/bin/podman run --rm -it --privileged --net host -e DISPLAY=$DISPLAY -v $(pwd):/workdir docker-archive:${devcubeContainer}
               '';
             };
 
+          packages.bouffalo-loader =
+            let
+              python = (python3.withPackages (python-pkgs: [
+                python-pkgs.pyserial
+                python-pkgs.pyelftools
+              ]));
+            in
+            stdenv.mkDerivation
+              rec {
+                pname = "bouffalo-loader";
+                version = "unstable";
+                src = fetchFromGitHub {
+                  owner = "smaeul";
+                  repo = pname;
+                  rev = "main";
+                  sha256 = "sha256-CwS2wLoL3ETRypwewB+z8bXZCRTH22EHIpOd45tG+bY=";
+                };
+
+                buildPhase = "true";
+
+                installPhase = ''
+                  runHook preInstall
+                  mkdir -p $out/bin
+                  mkdir -p $out/share/bouffalo-loader
+
+                  cp -r $src/* $out/share/bouffalo-loader
+
+                  cat << EOF > $out/bin/bouffalo-loader
+                  #!${stdenv.shell}
+
+                  if [[ "$*" == *"bl808"* ]]; then
+                    if [[ "$*" == *"-C"* ]]; then
+                      true
+                    else
+                      ${python}/bin/python3 $out/share/bouffalo-loader/loader.py -C $out/share/bouffalo-loader/bl808_header_cfg.conf "\$@"
+                    fi
+                  fi
+
+                  ${python}/bin/python3 $out/share/bouffalo-loader/loader.py "\$@"
+
+
+                  EOF
+                  chmod +x $out/bin/bouffalo-loader
+
+                  runHook postInstall
+                '';
+              };
 
 
           devShells.default = mkShellNoCC
