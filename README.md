@@ -10,4 +10,10 @@ nix run github:zebreus/bl808-nix-tools#devcube
 
 # Run bouffalo-loader
 nix run github:zebreus/bl808-nix-tools#bouffalo-loader
+
+# Run bflb-mcu-tool
+nix run github:zebreus/bl808-nix-tools#bflb-mcu-tool
+
+# Run bflb-iot-tool
+nix run github:zebreus/bl808-nix-tools#bflb-iot-tool
 ```

@@ -187,42 +187,78 @@
             ];
           };
 
-          packages.bflb-mcu-tool = python311Packages.buildPythonPackage rec {
-            pname = "bflb-mcu-tool";
-            version = "1.8.7";
+          packages.python3WithBouffalo = (python3.withPackages (python-pkgs: [
+            python311Packages.setuptools
+            python311Packages.pyserial
+            python311Packages.pyelftools
+            python311Packages.pylink-square
+            python311Packages.portalocker
+            python311Packages.ecdsa
+            python311Packages.pycryptodome
+            packages.bflb-crypto-plus
+            packages.pycklink
+          ]));
 
-            src = fetchPypi {
-              inherit pname version;
-              hash = "sha256-9LNvA6sUpADmxzBtVTFYyeGqhlytyE8x9MgDErvrwk8=";
+          packages.init-python-venv = stdenv.mkDerivation
+            rec {
+              pname = "init-python-venv";
+              version = "unstable";
+              src = ./.;
+
+              buildPhase = "true";
+
+              installPhase = ''
+                runHook preInstall
+                mkdir -p $out/bin
+
+                cat << EOF > $out/bin/init-python-venv
+                #!${stdenv.shell}
+
+                mkdir -p ~/.bouffalolab-python-tools
+                touch ~/.bouffalolab-python-tools/nix-store-path
+                if [[ \$(cat ~/.bouffalolab-python-tools/nix-store-path) == "$out" ]]; then
+                  exit 0
+                fi
+    
+                OLD_DIR=\$(pwd)
+                cd ~/.bouffalolab-python-tools
+                ${packages.python3WithBouffalo}/bin/python3 -m venv .venv
+                source .venv/bin/activate
+                pip install bflb_iot_tool
+                pip install bflb_mcu_tool
+                echo $out > ~/.bouffalolab-python-tools/nix-store-path
+                EOF
+                chmod +x $out/bin/init-python-venv
+
+                runHook postInstall
+              '';
             };
 
-            nativeBuildInputs = [
-              python311Packages.setuptools
-            ];
+          packages.bflb-iot-tool = writeTextFile rec {
+            name = "bflb-iot-tool";
+            executable = true;
+            destination = "/bin/bflb-iot-tool";
+            text = ''
+              #!${stdenv.shell}
 
-
-            propagatedBuildInputs = [
-              python311Packages.setuptools
-              python311Packages.pyserial
-              python311Packages.pyelftools
-              python311Packages.pylink-square
-              python311Packages.portalocker
-              python311Packages.ecdsa
-              python311Packages.pycryptodome
-              packages.bflb-crypto-plus
-              packages.pycklink
-            ];
-
-            nativeCheckInputs = [
-            ];
-            checkPhase = "true";
-
-            # pytestFlagsArray = [ "test/test.py" ];
-
-            pythonImportsCheck = [ ];
-
+              ${packages.init-python-venv}/bin/init-python-venv
+              source ~/.bouffalolab-python-tools/.venv/bin/activate
+              python3 -m bflb_iot_tool "$@"
+            '';
           };
 
+          packages.bflb-mcu-tool = writeTextFile rec {
+            name = "bflb-mcu-tool";
+            executable = true;
+            destination = "/bin/bflb-mcu-tool";
+            text = ''
+              #!${stdenv.shell}
+
+              ${packages.init-python-venv}/bin/init-python-venv
+              source ~/.bouffalolab-python-tools/.venv/bin/activate
+              python3 -m bflb_mcu_tool "$@"
+            '';
+          };
 
           devShells.default = mkShellNoCC
             {
