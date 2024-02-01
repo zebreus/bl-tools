@@ -150,6 +150,79 @@
                 '';
               };
 
+          packages.bflb-crypto-plus = python311Packages.buildPythonPackage rec {
+            pname = "bflb_crypto_plus";
+            version = "1.0";
+
+            src = fetchPypi {
+              inherit pname version;
+              hash = "sha256-sbSDh05dLstJ+fhSWXFa2Ut2+WJ7Pen6Z39spc5mYkI=";
+            };
+
+            nativeBuildInputs = [
+              python311Packages.setuptools
+            ];
+
+            propagatedBuildInputs = [
+              python311Packages.setuptools
+              python311Packages.pycryptodome
+            ];
+          };
+
+          packages.pycklink = python311Packages.buildPythonPackage rec {
+            pname = "pycklink";
+            version = "0.1.1";
+
+            src = fetchPypi {
+              inherit pname version;
+              hash = "sha256-Ub3a72V15Fkeyo7RkbjMaj6faUrcC8RkRRSbNUuq/ks=";
+            };
+
+            nativeBuildInputs = [
+              python311Packages.setuptools
+            ];
+
+            propagatedBuildInputs = [
+              python311Packages.setuptools
+            ];
+          };
+
+          packages.bflb-mcu-tool = python311Packages.buildPythonPackage rec {
+            pname = "bflb-mcu-tool";
+            version = "1.8.7";
+
+            src = fetchPypi {
+              inherit pname version;
+              hash = "sha256-9LNvA6sUpADmxzBtVTFYyeGqhlytyE8x9MgDErvrwk8=";
+            };
+
+            nativeBuildInputs = [
+              python311Packages.setuptools
+            ];
+
+
+            propagatedBuildInputs = [
+              python311Packages.setuptools
+              python311Packages.pyserial
+              python311Packages.pyelftools
+              python311Packages.pylink-square
+              python311Packages.portalocker
+              python311Packages.ecdsa
+              python311Packages.pycryptodome
+              packages.bflb-crypto-plus
+              packages.pycklink
+            ];
+
+            nativeCheckInputs = [
+            ];
+            checkPhase = "true";
+
+            # pytestFlagsArray = [ "test/test.py" ];
+
+            pythonImportsCheck = [ ];
+
+          };
+
 
           devShells.default = mkShellNoCC
             {
