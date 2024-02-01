@@ -1,41 +1,41 @@
-# bl808-nix-tools
+# bl-tools
 
-Run various tools for flashing and developing the BL808 with Nix.
+Easily get various tools for flashing and developing the BL808 with Nix.
 
 ## Usage
 
 Enter a shell with all the tools in `PATH`:
 
 ```sh
-nix develop github:zebreus/bl808-nix-tools
+nix develop github:zebreus/bl-tools
 ```
 
 You can also run individual commands like this:
 
 ```sh
 # Run the devcube tool
-nix run github:zebreus/bl808-nix-tools#devcube
+nix run github:zebreus/bl-tools#devcube
 
 # Run bouffalo-loader
-nix run github:zebreus/bl808-nix-tools#bouffalo-loader
+nix run github:zebreus/bl-tools#bouffalo-loader
 
 # Run bflb-mcu-tool
-nix run github:zebreus/bl808-nix-tools#bflb-mcu-tool
+nix run github:zebreus/bl-tools#bflb-mcu-tool
 
 # Run bflb-iot-tool
-nix run github:zebreus/bl808-nix-tools#bflb-iot-tool
+nix run github:zebreus/bl-tools#bflb-iot-tool
 
 # Run print_boot_header from bl808-utils
-nix run github:zebreus/bl808-nix-tools#print_boot_header
+nix run github:zebreus/bl-tools#print_boot_header
 
 # Run gen_boot_header from bl808-utils
-nix run github:zebreus/bl808-nix-tools#gen_boot_header
+nix run github:zebreus/bl-tools#gen_boot_header
 
 # Run BLFlashCommand
-nix run github:zebreus/bl808-nix-tools#BLFlashCommand
+nix run github:zebreus/bl-tools#BLFlashCommand
 
 # Run bflb_fw_post_proc
-nix run github:zebreus/bl808-nix-tools#bflb_fw_post_proc
+nix run github:zebreus/bl-tools#bflb_fw_post_proc
 ```
 
 ## About
