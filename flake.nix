@@ -260,6 +260,40 @@
             '';
           };
 
+          packages.print_boot_header = stdenv.mkDerivation {
+            name = "print_boot_header";
+            version = "unstable";
+            src = fetchFromGitHub {
+              owner = "Pavlos1";
+              repo = "bl808-utils";
+              rev = "48363b7b76f596b36021b0ebe58ac53582b209f5";
+              sha256 = "sha256-XAuxPByB2TaipxW9IS4X7Jphty4EguiDt7lgPs0RzQ4=";
+            };
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out/bin
+              cp print_boot_header $out/bin/print_boot_header
+              runHook postInstall
+            '';
+          };
+
+          packages.gen_boot_header = stdenv.mkDerivation {
+            name = "gen_boot_header";
+            version = "unstable";
+            src = fetchFromGitHub {
+              owner = "Pavlos1";
+              repo = "bl808-utils";
+              rev = "48363b7b76f596b36021b0ebe58ac53582b209f5";
+              sha256 = "sha256-XAuxPByB2TaipxW9IS4X7Jphty4EguiDt7lgPs0RzQ4=";
+            };
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out/bin
+              cp gen_boot_header $out/bin/gen_boot_header
+              runHook postInstall
+            '';
+          };
+
           devShells.default = mkShellNoCC
             {
               ncurses = ncurses;
