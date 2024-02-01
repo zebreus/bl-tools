@@ -116,7 +116,7 @@
                 src = fetchFromGitHub {
                   owner = "smaeul";
                   repo = pname;
-                  rev = "main";
+                  rev = "7275ba2744a53efbfb29a199965f04cd4459b60d";
                   sha256 = "sha256-CwS2wLoL3ETRypwewB+z8bXZCRTH22EHIpOd45tG+bY=";
                 };
 
@@ -220,6 +220,8 @@
                   exit 0
                 fi
     
+                rm -rf ~/.bouffalolab-python-tools
+                mkdir -p ~/.bouffalolab-python-tools
                 OLD_DIR=\$(pwd)
                 cd ~/.bouffalolab-python-tools
                 ${packages.python3WithBouffalo}/bin/python3 -m venv .venv
@@ -291,6 +293,63 @@
               mkdir -p $out/bin
               cp gen_boot_header $out/bin/gen_boot_header
               runHook postInstall
+            '';
+          };
+
+          packages.init-flashcommand-env = stdenv.mkDerivation
+            rec {
+              pname = "init-flashcommand-env";
+              version = "unstable";
+              src = fetchFromGitHub {
+                owner = "bouffalolab";
+                repo = "bouffalo_sdk";
+                rev = "302e017ea06b4c75963212f7144f8800c05901f1";
+                sha256 = "sha256-+OzUPI9lymqv+PuSnwIQD+ZPJUuxRzAw/q4YtyACnN0=";
+              };
+
+              buildPhase = "true";
+
+              installPhase = ''
+                runHook preInstall
+                mkdir -p $out/flash
+                mkdir -p $out/bin
+
+                cp -r $src/tools/bflb_tools/bouffalo_flash_cube/{utils,chips,docs} $out/flash
+                cp $src/tools/bflb_tools/bouffalo_flash_cube/BLFlashCommand-ubuntu $out/flash/BLFlashCommand
+                chmod +x $out/flash/BLFlashCommand
+
+                cat << EOF > $out/bin/init-flashcommand-env
+                #!${stdenv.shell}
+
+                mkdir -p ~/.bouffalolab-binary-tools/flash
+                touch ~/.bouffalolab-binary-tools/flash/nix-store-path
+                if [[ \$(cat ~/.bouffalolab-binary-tools/flash/nix-store-path) == "$out" ]]; then
+                  exit 0
+                fi
+                
+                rm -rf ~/.bouffalolab-binary-tools/flash
+                OLD_DIR=\$(pwd)
+                cp -r $out/flash ~/.bouffalolab-binary-tools/flash
+                chmod -R +rw ~/.bouffalolab-binary-tools/flash
+                chmod +x ~/.bouffalolab-binary-tools/flash/BLFlashCommand
+                
+                echo $out > ~/.bouffalolab-binary-tools/flash/nix-store-path
+                EOF
+                chmod +x $out/bin/init-flashcommand-env
+
+                runHook postInstall
+              '';
+            };
+
+          packages.BLFlashCommand = writeTextFile rec {
+            name = "BLFlashCommand";
+            executable = true;
+            destination = "/bin/BLFlashCommand";
+            text = ''
+              #!${stdenv.shell}
+
+              ${packages.init-flashcommand-env}/bin/init-flashcommand-env
+              ${steamPackages.steam-fhsenv-without-steam.run}/bin/steam-run ~/.bouffalolab-binary-tools/flash/BLFlashCommand "$@"
             '';
           };
 

@@ -23,6 +23,9 @@ nix run github:zebreus/bl808-nix-tools#print_boot_header
 # Run gen_boot_header from bl808-utils
 nix run github:zebreus/bl808-nix-tools#gen_boot_header
 
+# Run BLFlashCommand
+nix run github:zebreus/bl808-nix-tools#BLFlashCommand
+```
 
 ## About
 
