@@ -18,6 +18,7 @@
           name = "bl808-tools";
 
 
+          # The fastest way I got this to run was to use a docker container with X11 forwarding
           packages.devcube =
             let
               devcubeSrc = stdenv.mkDerivation
@@ -102,6 +103,8 @@
               '';
             };
 
+          # This is just a python script that has two dependencies.
+          # If you are targeting the BL808 I will automatically add the `-C bl808_header_cfg.conf` flag with the correct path to bl808_header_cfg.conf
           packages.bouffalo-loader =
             let
               python = (python3.withPackages (python-pkgs: [
@@ -168,7 +171,6 @@
               python311Packages.pycryptodome
             ];
           };
-
           packages.pycklink = python311Packages.buildPythonPackage rec {
             pname = "pycklink";
             version = "0.1.1";
@@ -186,7 +188,6 @@
               python311Packages.setuptools
             ];
           };
-
           packages.python3WithBouffalo = (python3.withPackages (python-pkgs: [
             python311Packages.setuptools
             python311Packages.pyserial
@@ -199,6 +200,8 @@
             packages.pycklink
           ]));
 
+          # Real fhs bubblewrap would be better but I couldn't get it to work quickly.
+          # This is hacky but it works.
           packages.init-python-venv = stdenv.mkDerivation
             rec {
               pname = "init-python-venv";
@@ -235,7 +238,6 @@
                 runHook postInstall
               '';
             };
-
           packages.bflb-iot-tool = writeTextFile rec {
             name = "bflb-iot-tool";
             executable = true;
@@ -248,7 +250,6 @@
               python3 -m bflb_iot_tool "$@"
             '';
           };
-
           packages.bflb-mcu-tool = writeTextFile rec {
             name = "bflb-mcu-tool";
             executable = true;
@@ -262,6 +263,9 @@
             '';
           };
 
+          # Finally a simple package
+          # There is probably a way to get the two programs in the same package
+          # Maybe with apps, idk
           packages.print_boot_header = stdenv.mkDerivation {
             name = "print_boot_header";
             version = "unstable";
@@ -278,7 +282,6 @@
               runHook postInstall
             '';
           };
-
           packages.gen_boot_header = stdenv.mkDerivation {
             name = "gen_boot_header";
             version = "unstable";
@@ -296,6 +299,8 @@
             '';
           };
 
+          # Same as the python venv but for the flash command
+          # Also uses steam-run because why not
           packages.init-flashcommand-env = stdenv.mkDerivation
             rec {
               pname = "init-flashcommand-env";
@@ -316,7 +321,9 @@
 
                 cp -r $src/tools/bflb_tools/bouffalo_flash_cube/{utils,chips,docs} $out/flash
                 cp $src/tools/bflb_tools/bouffalo_flash_cube/BLFlashCommand-ubuntu $out/flash/BLFlashCommand
+                cp $src/tools/bflb_tools/bflb_fw_post_proc/bflb_fw_post_proc-ubuntu $out/flash/bflb_fw_post_proc
                 chmod +x $out/flash/BLFlashCommand
+                chmod +x $out/flash/bflb_fw_post_proc
 
                 cat << EOF > $out/bin/init-flashcommand-env
                 #!${stdenv.shell}
@@ -332,6 +339,7 @@
                 cp -r $out/flash ~/.bouffalolab-binary-tools/flash
                 chmod -R +rw ~/.bouffalolab-binary-tools/flash
                 chmod +x ~/.bouffalolab-binary-tools/flash/BLFlashCommand
+                chmod +x ~/.bouffalolab-binary-tools/flash/bflb_fw_post_proc
                 
                 echo $out > ~/.bouffalolab-binary-tools/flash/nix-store-path
                 EOF
@@ -352,11 +360,35 @@
               ${steamPackages.steam-fhsenv-without-steam.run}/bin/steam-run ~/.bouffalolab-binary-tools/flash/BLFlashCommand "$@"
             '';
           };
+          # I am not sure what this command does, but it was easy to package it alongside the BLFlashCommand
+          # It probably doesn't even need steam-run
+          # It also doesn't need to write in its directory
+          # It seems broken but I tried it in a ubuntu container and it did behave the same way
+          packages.bflb_fw_post_proc = writeTextFile rec {
+            name = "bflb_fw_post_proc";
+            executable = true;
+            destination = "/bin/bflb_fw_post_proc";
+            text = ''
+              #!${stdenv.shell}
+
+              ${packages.init-flashcommand-env}/bin/init-flashcommand-env
+              ${steamPackages.steam-fhsenv-without-steam.run}/bin/steam-run ~/.bouffalolab-binary-tools/flash/bflb_fw_post_proc "$@"
+            '';
+          };
 
           devShells.default = mkShellNoCC
             {
               ncurses = ncurses;
               buildInputs = [
+                packages.devcube
+                packages.bouffalo-loader
+                packages.bflb-mcu-tool
+                packages.bflb-iot-tool
+                packages.print_boot_header
+                packages.gen_boot_header
+                packages.BLFlashCommand
+                packages.bflb_fw_post_proc
+
                 gnat13 # gcc with ada
                 ncurses # make menuconfig
                 m4
