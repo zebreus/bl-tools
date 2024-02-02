@@ -153,6 +153,55 @@
                 '';
               };
 
+          # Bouffalo-loader fork with extra features for oreboot 
+          packages.bouffalo-loader-extended =
+            let
+              python = (python3.withPackages (python-pkgs: [
+                python-pkgs.pyserial
+                python-pkgs.pyelftools
+              ]));
+            in
+            stdenv.mkDerivation
+              rec {
+                pname = "bouffalo-loader-extended";
+                version = "unstable";
+                src = fetchFromGitHub {
+                  owner = "orangecms";
+                  repo = "bouffalo-loader";
+                  rev = "b4754308bd7423bbf42b44d0144dfbc1bcc1489c";
+                  sha256 = "sha256-giPtrZnBc5SpndC4YDX5rwGJk3w2T0nu96iRn+Hltek=";
+                };
+
+                buildPhase = "true";
+
+                installPhase = ''
+                  runHook preInstall
+                  mkdir -p $out/bin
+                  mkdir -p $out/share/bouffalo-loader-extended
+
+                  cp -r $src/* $out/share/bouffalo-loader-extended
+
+                  cat << EOF > $out/bin/bouffalo-loader-extended
+                  #!${stdenv.shell}
+
+                  if [[ "$*" == *"bl808"* ]]; then
+                    if [[ "$*" == *"-C"* ]]; then
+                      true
+                    else
+                      ${python}/bin/python3 $out/share/bouffalo-loader-extended/loader.py -C $out/share/bouffalo-loader-extended/bl808_header_cfg.conf "\$@"
+                    fi
+                  fi
+
+                  ${python}/bin/python3 $out/share/bouffalo-loader-extended/loader.py "\$@"
+
+
+                  EOF
+                  chmod +x $out/bin/bouffalo-loader-extended
+
+                  runHook postInstall
+                '';
+              };
+
           packages.bflb-crypto-plus = python311Packages.buildPythonPackage rec {
             pname = "bflb_crypto_plus";
             version = "1.0";
@@ -467,6 +516,7 @@
               buildInputs = [
                 packages.BLDevCube
                 packages.bouffalo-loader
+                packages.bouffalo-loader-extended
                 packages.bflb-mcu-tool
                 packages.bflb-iot-tool
                 packages.print_boot_header

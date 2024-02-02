@@ -19,6 +19,9 @@ nix run github:zebreus/bl-tools#BLDevCube
 # Run bouffalo-loader
 nix run github:zebreus/bl-tools#bouffalo-loader
 
+# Run the bouffalo-loader fork of orangecms. For flashing 2 firmwares at once.
+nix run github:zebreus/bl-tools#bouffalo-loader-extended
+
 # Run bflb-mcu-tool
 nix run github:zebreus/bl-tools#bflb-mcu-tool
 
