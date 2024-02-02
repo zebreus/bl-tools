@@ -376,6 +376,91 @@
             '';
           };
 
+          packages.BLFlashCube =
+            let
+              BLFlashCubeSrc = stdenv.mkDerivation
+                {
+                  pname = "BLFlashCubeSrc";
+                  version = "1.8.3";
+                  src = fetchFromGitHub {
+                    owner = "bouffalolab";
+                    repo = "bouffalo_sdk";
+                    rev = "302e017ea06b4c75963212f7144f8800c05901f1";
+                    sha256 = "sha256-+OzUPI9lymqv+PuSnwIQD+ZPJUuxRzAw/q4YtyACnN0=";
+                  };
+
+                  sourceRoot = ".";
+
+                  installPhase = ''
+                    runHook preInstall
+                    mkdir -p $out/flashcube
+                    cp -r $src/tools/bflb_tools/bouffalo_flash_cube/{utils,docs,utils} $out/flashcube
+                    install -m755 -D $src/tools/bflb_tools/bouffalo_flash_cube/BLFlashCube-ubuntu $out/flashcube/BLFlashCube-ubuntu
+                    runHook postInstall
+                  '';
+                };
+
+              flashcubeContainer = dockerTools.buildImage {
+                name = "devcube-container";
+                fromImage = pkgs.dockerTools.pullImage {
+                  imageName = "gameonwhales/xorg";
+                  imageDigest = "sha256:61084c6435fefa19e8114d158f5d8663cf5fbc2c66d4db7d286999d2d94300d6";
+                  sha256 = "sha256-LFybsh8Ni0Xah0A8HxYLRUtuEOqbsMljKeKgUxsAppI=";
+                  finalImageName = "devcube-container";
+                  finalImageTag = "latest";
+                  os = "linux";
+                  arch = "x86_64";
+                };
+
+                copyToRoot = pkgs.buildEnv {
+                  name = "flashcube-root";
+                  paths = [ BLFlashCubeSrc ];
+                  pathsToLink = [ "/flashcube" ];
+                };
+
+                runAsRoot = ''
+                  #!${stdenv.shell}
+                  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+                  ${dockerTools.shadowSetup}
+                  # apt update && apt install -y xterm
+                  # groupadd -r redis
+                  # useradd -r -g redis -d /data -M redis
+                  # mkdir /data
+                  # chown redis:redis /data
+
+                  mkdir -p /root/.config
+                  cat  << EOF > /root/.config/QtProject.conf
+                  [FileDialog]
+                  history=@Invalid()
+                  lastVisited=file:///workdir
+                  qtVersion=5.15.2
+                  shortcuts=file:, file:///workdir
+                  sidebarWidth=170
+                  treeViewHeader=@ByteArray(\0\0\0\xff\0\0\0\0\0\0\0\x1\0\0\0\0\0\0\0\0\x1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x2\x36\0\0\0\x4\x1\x1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x64\xff\xff\xff\xff\0\0\0\x81\0\0\0\0\0\0\0\x4\0\0\x1\x31\0\0\0\x1\0\0\0\0\0\0\0\x44\0\0\0\x1\0\0\0\0\0\0\0I\0\0\0\x1\0\0\0\0\0\0\0x\0\0\0\x1\0\0\0\0\0\0\x3\xe8\0\xff\xff\xff\xff)
+                  viewMode=Detail
+                  EOF
+
+                '';
+
+                config = {
+                  Cmd = [ "/flashcube/BLFlashCube-ubuntu" ];
+                  WorkingDir = "/flashcube";
+                };
+              };
+            in
+            writeTextFile {
+              name = "BLFlashCube-1.0.8";
+              executable = true;
+              destination = "/bin/BLFlashCube";
+              text = ''
+                #!${stdenv.shell}
+
+                ${xorg.xhost}/bin/xhost +local:root
+
+                ${podman}/bin/podman run --rm -it --privileged --net host -e DISPLAY=$DISPLAY -v $(pwd):/workdir docker-archive:${flashcubeContainer}
+              '';
+            };
+
           devShells.default = mkShellNoCC
             {
               ncurses = ncurses;
@@ -387,6 +472,7 @@
                 packages.print_boot_header
                 packages.gen_boot_header
                 packages.BLFlashCommand
+                packages.BLFlashCube
                 packages.bflb_fw_post_proc
 
                 gnat13 # gcc with ada

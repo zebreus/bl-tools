@@ -36,6 +36,9 @@ nix run github:zebreus/bl-tools#BLFlashCommand
 
 # Run bflb_fw_post_proc
 nix run github:zebreus/bl-tools#bflb_fw_post_proc
+
+# Run BLFlashCube
+nix run github:zebreus/bl-tools#BLFlashCube
 ```
 
 ## About
