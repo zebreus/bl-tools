@@ -13,8 +13,8 @@ nix develop github:zebreus/bl-tools
 You can also run individual commands like this:
 
 ```sh
-# Run the devcube tool
-nix run github:zebreus/bl-tools#devcube
+# Run the BLDevCube tool
+nix run github:zebreus/bl-tools#BLDevCube
 
 # Run bouffalo-loader
 nix run github:zebreus/bl-tools#bouffalo-loader

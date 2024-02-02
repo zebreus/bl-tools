@@ -19,7 +19,7 @@
 
 
           # The fastest way I got this to run was to use a docker container with X11 forwarding
-          packages.devcube =
+          packages.BLDevCube =
             let
               devcubeSrc = stdenv.mkDerivation
                 rec {
@@ -90,10 +90,10 @@
                 };
               };
             in
-            writeTextFile rec {
-              name = "devcube-1.8.3";
+            writeTextFile {
+              name = "BLDevCube-1.8.3";
               executable = true;
-              destination = "/bin/devcube";
+              destination = "/bin/BLDevCube";
               text = ''
                 #!${stdenv.shell}
 
@@ -465,7 +465,7 @@
             {
               ncurses = ncurses;
               buildInputs = [
-                packages.devcube
+                packages.BLDevCube
                 packages.bouffalo-loader
                 packages.bflb-mcu-tool
                 packages.bflb-iot-tool
