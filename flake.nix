@@ -135,11 +135,13 @@
                   cat << EOF > $out/bin/bouffalo-loader
                   #!${stdenv.shell}
 
-                  if [[ "$*" == *"bl808"* ]]; then
-                    if [[ "$*" == *"-C"* ]]; then
+
+                  if [[ "\$*" == *"bl808"* ]]; then
+                    if [[ "\$*" == *"-C"* ]]; then
                       true
                     else
                       ${python}/bin/python3 $out/share/bouffalo-loader/loader.py -C $out/share/bouffalo-loader/bl808_header_cfg.conf "\$@"
+                      exit 0
                     fi
                   fi
 
@@ -184,11 +186,13 @@
                   cat << EOF > $out/bin/bouffalo-loader-extended
                   #!${stdenv.shell}
 
-                  if [[ "$*" == *"bl808"* ]]; then
-                    if [[ "$*" == *"-C"* ]]; then
+
+                  if [[ "\$*" == *"bl808"* ]]; then
+                    if [[ "\$*" == *"-C"* ]]; then
                       true
                     else
                       ${python}/bin/python3 $out/share/bouffalo-loader-extended/loader.py -C $out/share/bouffalo-loader-extended/bl808_header_cfg.conf "\$@"
+                      exit 0
                     fi
                   fi
 
