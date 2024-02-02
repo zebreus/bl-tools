@@ -502,14 +502,8 @@
                 gdb
                 python3
 
-                (fenix.packages.${system}.complete.withComponents [
-                  "cargo"
-                  "clippy"
-                  "rust-src"
-                  "rustc"
-                  "rustfmt"
-                ])
-                fenix.packages.${system}.rust-analyzer
+                rustup
+                minicom
               ];
               shellHook = ''
                 # TODO remove?
