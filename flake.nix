@@ -183,6 +183,9 @@
 
                   cp -r $src/* $out/share/bouffalo-loader-extended
 
+                  # Patch out weird error that sometimes happens.
+                  sed -i '405s/raise Exception/logger.info/' $out/share/bouffalo-loader-extended/loader.py
+
                   cat << EOF > $out/bin/bouffalo-loader-extended
                   #!${stdenv.shell}
 
